@@ -1,7 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import PromptInput from "@/app/components/PromptInput";
+import { generateRecipeResult } from "./actions";
+import RecipeResult from "./components/RecipeResult";
 
 function parseIngredients(raw: string) {
   return raw
@@ -12,20 +14,8 @@ function parseIngredients(raw: string) {
 
 function FridgeMark() {
   return (
-    <svg
-      viewBox="0 0 48 64"
-      className="h-10 w-8"
-      aria-hidden
-      fill="none"
-    >
-      <rect
-        x="8"
-        y="4"
-        width="32"
-        height="56"
-        rx="6"
-        fill="#2c4636"
-      />
+    <svg viewBox="0 0 48 64" className="h-10 w-8" aria-hidden fill="none">
+      <rect x="8" y="4" width="32" height="56" rx="6" fill="#2c4636" />
       <rect x="12" y="8" width="24" height="22" rx="3" fill="#fff8ee" />
       <rect x="12" y="34" width="24" height="20" rx="3" fill="#efe4cf" />
       <rect x="32" y="16" width="2.5" height="8" rx="1" fill="#c24d2c" />
@@ -38,10 +28,29 @@ export default function Page() {
   const [isLoading, setIsLoading] = useState(false);
   const [ingredients, setIngredients] = useState<string | null>(null);
 
-  function handleSubmit(text: string) {
+  const [recipe, setRecipe] = useState<any>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const requestId = useRef(0);
+
+  async function handleSubmit(text: string) {
     setIsLoading(true);
     setIngredients(text);
-    setTimeout(() => setIsLoading(false), 1000);
+    setError(null);
+
+    const currentId = ++requestId.current;
+
+    const result = await generateRecipeResult(text);
+    if (currentId !== requestId.current) return;
+
+    setIsLoading(false);
+
+    if (result.success) {
+      setRecipe(result.data);
+    } else {
+      setRecipe(null);
+      setError(result.error || "Something went wrong.");
+    }
   }
 
   const chips = ingredients ? parseIngredients(ingredients) : [];
@@ -58,13 +67,17 @@ export default function Page() {
           <div className="flex items-center gap-3">
             <FridgeMark />
             <div>
-              <p className="font-display text-xl leading-none tracking-tight">Pantry</p>
+              <p className="font-display text-xl leading-none tracking-tight">
+                Pantry
+              </p>
               <p className="mt-1 text-[11px] uppercase tracking-[0.22em] text-muted">
                 Fridge → recipe
               </p>
             </div>
           </div>
-          <p className="hidden text-sm text-muted sm:block">No meal plan required.</p>
+          <p className="hidden text-sm text-muted sm:block">
+            No meal plan required.
+          </p>
         </header>
 
         <main className="grid flex-1 items-center gap-10 py-10 sm:grid-cols-[1fr_1fr] sm:gap-8 lg:grid-cols-[1.05fr_0.95fr] lg:gap-16">
@@ -83,9 +96,15 @@ export default function Page() {
 
             <ul className="mt-8 flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-sage">
               <li>Uses what you have</li>
-              <li aria-hidden className="hidden h-1 w-1 rounded-full bg-gold sm:block" />
+              <li
+                aria-hidden
+                className="hidden h-1 w-1 rounded-full bg-gold sm:block"
+              />
               <li>Ready in minutes</li>
-              <li aria-hidden className="hidden h-1 w-1 rounded-full bg-gold sm:block" />
+              <li
+                aria-hidden
+                className="hidden h-1 w-1 rounded-full bg-gold sm:block"
+              />
               <li>Zero fancy equipment</li>
             </ul>
           </section>
@@ -115,6 +134,10 @@ export default function Page() {
                   ))}
                 </div>
               </div>
+            )}
+
+            {(recipe || error) && (
+              <RecipeResult recipe={recipe} error={error} />
             )}
           </section>
         </main>

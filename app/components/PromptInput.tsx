@@ -44,7 +44,7 @@ export default function PromptInput({
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-      <div className="flex flex-col gap-1">
+      <div className="flex items-end justify-between gap-3">
         <label htmlFor="ingredients" className="text-sm font-medium text-sage">
           What’s in the fridge?
         </label>
