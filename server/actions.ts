@@ -1,26 +1,7 @@
 "use server";
 
-type RecipeData = {
-  title: string;
-  description?: string;
-  steps: string[];
-};
-
-type ActionResult =
-  | { success: true; data: RecipeData }
-  | { success: false; error: string; code: ErrorCode };
-
-type ErrorCode =
-  | "MISSING_INPUT"
-  | "INVALID_INGREDIENTS"
-  | "CONFIG_ERROR"
-  | "RATE_LIMIT"
-  | "SAFETY_BLOCK"
-  | "NETWORK_ERROR"
-  | "INVALID_RESPONSE"
-  | "UNKNOWN";
-
 import { GoogleGenAI } from "@google/genai";
+import { ActionResult } from "@/types/result";
 
 export async function generateRecipeResult(
   ingredients: string,
@@ -59,7 +40,7 @@ Input: ${ingredients}`;
   let response;
   try {
     response = await ai.models.generateContent({
-      model: "gemini-3.8-flash",
+      model: "gemini-2.5-flash-lite",
       contents: prompt,
     });
   } catch (err) {
@@ -84,7 +65,6 @@ Input: ${ingredients}`;
       };
     }
 
-    console.error("Gemini API call failed:", message);
     return {
       success: false,
       error: "Couldn't reach the recipe service. Please try again.",

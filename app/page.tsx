@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import PromptInput from "@/components/PromptInput";
 import { generateRecipeResult } from "@/server/actions";
 import RecipeResult from "@/components/RecipeCard";
+import type { RecipeData } from "@/types/result";
 
 function parseIngredients(raw: string) {
   return raw
@@ -28,7 +29,7 @@ export default function Page() {
   const [isLoading, setIsLoading] = useState(false);
   const [ingredients, setIngredients] = useState<string | null>(null);
 
-  const [recipe, setRecipe] = useState<any>(null);
+  const [recipe, setRecipe] = useState<RecipeData | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const requestId = useRef(0);
