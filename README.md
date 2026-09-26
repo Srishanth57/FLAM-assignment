@@ -3,6 +3,13 @@
 Turn whatever's sitting in your fridge into a dinner idea. Type in your ingredients, and Gemini turns them into a recipe with a title, description, and step-by-step instructions.
 
 Built for the Flam frontend assignment.
+## Demo
+
+
+https://github.com/user-attachments/assets/4c14cd10-e841-4bd6-9358-b3e4e2592a0b
+
+
+
 
 ## Setup
 
