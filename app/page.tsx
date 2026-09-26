@@ -3,15 +3,8 @@
 import { useRef, useState } from "react";
 import PromptInput from "@/components/PromptInput";
 import { generateRecipeResult } from "@/server/actions";
-import RecipeResult from "@/components/RecipeCard";
 import type { RecipeData } from "@/types/result";
-
-function parseIngredients(raw: string) {
-  return raw
-    .split(/,|\n|\band\b/i)
-    .map((part) => part.replace(/^and\s+/i, "").trim())
-    .filter(Boolean);
-}
+import ResultView from "@/components/ResultView";
 
 function FridgeMark() {
   return (
@@ -53,8 +46,6 @@ export default function Page() {
       setError(result.error || "Something went wrong.");
     }
   }
-
-  const chips = ingredients ? parseIngredients(ingredients) : [];
 
   return (
     <div className="relative min-h-full overflow-hidden">
@@ -113,33 +104,12 @@ export default function Page() {
           <section className="rise rounded-[2rem] border border-line bg-cream/80 p-5 pb-7 shadow-[0_30px_60px_-36px_rgba(28,23,18,0.45)] backdrop-blur-sm sm:p-8">
             <PromptInput onSubmit={handleSubmit} isLoading={isLoading} />
 
-            {isLoading && (
-              <p className="mt-5 text-sm text-muted">
-                Scanning the shelves for something delicious…
-              </p>
-            )}
-
-            {!isLoading && chips.length > 0 && (
-              <div className="mt-6 border-t border-line pt-6">
-                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted">
-                  On the shelf
-                </p>
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {chips.map((chip) => (
-                    <span
-                      key={chip}
-                      className="rounded-full bg-sage px-3 py-1.5 text-sm text-cream"
-                    >
-                      {chip}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {(recipe || error) && (
-              <RecipeResult recipe={recipe} error={error} />
-            )}
+            <ResultView
+              isLoading={isLoading}
+              error={error}
+              recipe={recipe}
+              onRetry={() => ingredients && handleSubmit(ingredients)}
+            />
           </section>
         </main>
 
