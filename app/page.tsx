@@ -1,9 +1,9 @@
 "use client";
 
 import { useRef, useState } from "react";
-import PromptInput from "@/app/components/PromptInput";
-import { generateRecipeResult } from "./actions";
-import RecipeResult from "./components/RecipeResult";
+import PromptInput from "@/components/PromptInput";
+import { generateRecipeResult } from "@/server/actions";
+import RecipeResult from "@/components/RecipeCard";
 
 function parseIngredients(raw: string) {
   return raw
