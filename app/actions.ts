@@ -12,6 +12,7 @@ type ActionResult =
 
 type ErrorCode =
   | "MISSING_INPUT"
+  | "INVALID_INGREDIENTS"
   | "CONFIG_ERROR"
   | "RATE_LIMIT"
   | "SAFETY_BLOCK"
@@ -43,13 +44,17 @@ export async function generateRecipeResult(
 
   const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
-  const prompt = `Return ONLY valid JSON matching this shape, no prose:
-  {
-    "title": "Recipe Name",
-    "description": "Short description",
-    "steps": ["Step 1", "Step 2"]
-  }
-  Ingredients: ${ingredients}`;
+  const prompt = `You are a recipe generator. First, check whether the input below consists of real, edible food ingredients.
+
+If ANY item is not an edible food ingredient (e.g. "pen", "car", "rock", gibberish, or anything non-food), respond with ONLY this JSON shape, no prose:
+{ "valid": false, "reason": "A short, specific explanation of which item(s) aren't food and why" }
+
+If ALL items are genuine edible ingredients, respond with ONLY this JSON shape, no prose:
+{ "valid": true, "title": "Recipe Name", "description": "Short description", "steps": ["Step 1", "Step 2"] }
+
+Do not be lenient — a single non-food item makes the whole input invalid. Do not attempt to creatively reinterpret a non-food item as edible.
+
+Input: ${ingredients}`;
 
   let response;
   try {
@@ -114,7 +119,22 @@ export async function generateRecipeResult(
       .trim();
     const data = JSON.parse(cleanJson);
 
-    if (!data.title || !Array.isArray(data.steps) || data.steps.length === 0) {
+    if (data.valid === false) {
+      return {
+        success: false,
+        error:
+          data.reason ||
+          "Those don't look like edible ingredients. Please list actual food items.",
+        code: "INVALID_INGREDIENTS",
+      };
+    }
+
+    if (
+      !data.valid ||
+      !data.title ||
+      !Array.isArray(data.steps) ||
+      data.steps.length === 0
+    ) {
       console.error("Malformed recipe shape:", data);
       return {
         success: false,
